@@ -27,9 +27,11 @@ import com.google.gson.stream.JsonReader;
 public class App 
 {
 	private final Map<String, Object> propsMap = new HashMap<String, Object>();
-	private List<Map<String, Object>> studentsList = new ArrayList<Map<String, Object>>();
-	private List<Map<String, Object>> coursesList = new ArrayList<Map<String, Object>>();
-	private List<Map<String, Object>> enrollmentList = new ArrayList<Map<String, Object>>();
+	private Map<String, Object> activeStudentsMap = new HashMap<String, Object>();
+	private Map<String, Object> activeCoursesMap = new HashMap<String, Object>();
+	private List<Map<String, Object>> activeEnrollmentList = new ArrayList<Map<String, Object>>();
+	private Map<String, List<Object>> activeStudentsEnrolledInCoursesMap = new HashMap<String, List<Object>>();
+	
 	public App() {
 		Gson gson = new Gson();
 		try {
@@ -49,21 +51,25 @@ public class App
 						System.out.println(gson.toJson(recordHm));
 						if(recordHm.get("state")!=null&&recordHm.get("state").equals("active")) {
 							if(recordHm.get("user_name")!=null){
-								studentsList.add(recordHm);
+								activeStudentsMap.put((String) recordHm.get("user_id"),recordHm.get("user_name"));
 							} else if(recordHm.get("course_name")!=null) {
-								coursesList.add(recordHm);
+								activeCoursesMap.put((String) recordHm.get("course_id"),recordHm.get("course_name"));
 							} else {
-								enrollmentList.add(recordHm);
+								activeEnrollmentList.add(recordHm);
 							}
 						}
 					    
 					}
 					System.out.println("****** Students *******");
-					System.out.println(gson.toJson(studentsList));
+					System.out.println(gson.toJson(activeStudentsMap));
 					System.out.println("****** Courses *******");
-					System.out.println(gson.toJson(coursesList));
+					System.out.println(gson.toJson(activeCoursesMap));
 					System.out.println("****** Enrollment *******");
-					System.out.println(gson.toJson(enrollmentList));
+					System.out.println(gson.toJson(activeEnrollmentList));
+					for(Map enrollmentMap:activeEnrollmentList){
+						
+						
+					}
 					
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
