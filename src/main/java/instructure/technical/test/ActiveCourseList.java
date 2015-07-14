@@ -138,7 +138,7 @@ public class ActiveCourseList {
 	 * activeStudentsEnrolledInCoursesMap
 	 */
 	private void buildActiveCourseList() {
-		Gson gson = new Gson();
+		
 		for (Entry<String, String> course : activeCoursesMap.entrySet()) {
 			Map<String, List<String>> courseMap = new HashMap<String, List<String>>();
 			List<String> enrolledStudentList = activeStudentsEnrolledInCoursesMap
