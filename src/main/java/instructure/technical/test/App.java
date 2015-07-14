@@ -8,7 +8,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.csv.CSVFormat;
@@ -24,12 +26,15 @@ import com.google.gson.stream.JsonReader;
  */
 public class App 
 {
-	protected final Map<String, Object> props = new HashMap<String, Object>();
+	private final Map<String, Object> propsMap = new HashMap<String, Object>();
+	private List<Map<String, Object>> studentsList = new ArrayList<Map<String, Object>>();
+	private List<Map<String, Object>> coursesList = new ArrayList<Map<String, Object>>();
+	private List<Map<String, Object>> enrollmentList = new ArrayList<Map<String, Object>>();
 	public App() {
 		Gson gson = new Gson();
 		try {
 			getPropertiesFromClasspath("app.properties.json");
-			String InputFilesDirectory=(String) props.get("InputFilesDirectory");
+			String InputFilesDirectory=(String) propsMap.get("InputFilesDirectory");
 			System.out.println("InputFilesDirectory = "+InputFilesDirectory);
 			File[] files = new File(InputFilesDirectory).listFiles();
 			for (File file : files) {
@@ -44,8 +49,21 @@ public class App
 						}.getType());;
 						System.out.println("****** Record *******");
 						System.out.println(gson.toJson(recordHm));
+						if(recordHm.get("user_name")!=null){
+							studentsList.add(recordHm);
+						} else if(recordHm.get("course_name")!=null) {
+							coursesList.add(recordHm);
+						} else {
+							enrollmentList.add(recordHm);
+						}
 					    
 					}
+					System.out.println("****** Students *******");
+					System.out.println(gson.toJson(studentsList));
+					System.out.println("****** Courses *******");
+					System.out.println(gson.toJson(coursesList));
+					System.out.println("****** Enrollment *******");
+					System.out.println(gson.toJson(enrollmentList));
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -86,7 +104,7 @@ public class App
           reader.setLenient(true);
           Map<String, Object> myProps = new Gson().fromJson(reader, typ);
 
-          props.putAll(myProps);
+          propsMap.putAll(myProps);
         
         
          
