@@ -121,9 +121,11 @@ public class ActiveCourseList {
 						System.out.println("****** enrolledStudentsList *****");
 						System.out.println(gson.toJson(enrolledStudentsList));
 					}
-					activeStudentsEnrolledInCoursesMap.put(
-							enrollmentMap.get("course_id"),
-							enrolledStudentsList);
+					
+						activeStudentsEnrolledInCoursesMap.put(
+								enrollmentMap.get("course_id"),
+								enrolledStudentsList);
+					
 				}
 
 			}
@@ -136,12 +138,21 @@ public class ActiveCourseList {
 	 * activeStudentsEnrolledInCoursesMap
 	 */
 	private void buildActiveCourseList() {
+		Gson gson = new Gson();
 		for (Entry<String, String> course : activeCoursesMap.entrySet()) {
 			Map<String, List<String>> courseMap = new HashMap<String, List<String>>();
 			List<String> enrolledStudentList = activeStudentsEnrolledInCoursesMap
 					.get(course.getKey());
+			if(enrolledStudentList==null) {
+			  List<String> noStudentsList = new ArrayList<String>();
+			  noStudentsList.add("No students enrolled in course" );
+			  courseMap.put(course.getValue(), noStudentsList);
+			} else {
 			courseMap.put(course.getValue(), enrolledStudentList);
+			}
+			
 			activeCoursesList.add(courseMap);
+			
 
 		}
 	}
