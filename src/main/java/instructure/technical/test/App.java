@@ -42,19 +42,19 @@ public class App
 				try {
 					Iterable<CSVRecord> records = CSVFormat.EXCEL.withHeader().parse(in);
 					for (CSVRecord record : records) {
-						HashMap<String, Object> recordWrapper = gson.fromJson(gson.toJson(record),new TypeToken<HashMap<String, Object>>() {
-						}.getType());
 						
-						HashMap<String, Object> recordHm=gson.fromJson(gson.toJson(recordWrapper.get("mapping")),new TypeToken<HashMap<String, Object>>() {
+						HashMap<String, Object> recordHm=gson.fromJson(gson.toJson(record.toMap()),new TypeToken<HashMap<String, Object>>() {
 						}.getType());;
 						System.out.println("****** Record *******");
 						System.out.println(gson.toJson(recordHm));
-						if(recordHm.get("user_name")!=null){
-							studentsList.add(recordHm);
-						} else if(recordHm.get("course_name")!=null) {
-							coursesList.add(recordHm);
-						} else {
-							enrollmentList.add(recordHm);
+						if(recordHm.get("state")!=null&&recordHm.get("state").equals("active")) {
+							if(recordHm.get("user_name")!=null){
+								studentsList.add(recordHm);
+							} else if(recordHm.get("course_name")!=null) {
+								coursesList.add(recordHm);
+							} else {
+								enrollmentList.add(recordHm);
+							}
 						}
 					    
 					}
@@ -64,6 +64,7 @@ public class App
 					System.out.println(gson.toJson(coursesList));
 					System.out.println("****** Enrollment *******");
 					System.out.println(gson.toJson(enrollmentList));
+					
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
