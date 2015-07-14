@@ -1,6 +1,9 @@
 package instructure.technical.test;
 
 import java.io.File;
+
+import org.apache.commons.cli.DefaultParser;
+
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -16,6 +19,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 
@@ -35,7 +45,8 @@ import com.google.gson.stream.JsonReader;
  * course a list of active students with active enrollments in that course.
  */
 public class ActiveCourseList {
-	private static final boolean debug = false;
+	private static final String INPUT_FILES_DIRECTORY = "InputFilesDirectory";
+	private static boolean debug = false;
 	private final Map<String, Object> propsMap = new HashMap<String, Object>();
 	private Map<String, String> activeStudentsMap = new HashMap<String, String>();
 	private Map<String, String> activeCoursesMap = new HashMap<String, String>();
@@ -47,12 +58,16 @@ public class ActiveCourseList {
 	 * default constructor is called by main method to execute program
 	 */
 	public ActiveCourseList() {
+
+	}
+
+	public void execute() {
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
 		try {
-			getPropertiesFromClasspath("app.properties.json");
+			
 			String InputFilesDirectory = (String) propsMap
-					.get("InputFilesDirectory");
+					.get(INPUT_FILES_DIRECTORY);
 			if (debug) {
 				System.out.println("InputFilesDirectory = "
 						+ InputFilesDirectory);
@@ -78,7 +93,6 @@ public class ActiveCourseList {
 					.println("****** List of active Courses with list of active students in each course *******");
 		}
 		System.out.println(gson.toJson(activeCoursesList));
-
 	}
 
 	/**
@@ -121,11 +135,11 @@ public class ActiveCourseList {
 						System.out.println("****** enrolledStudentsList *****");
 						System.out.println(gson.toJson(enrolledStudentsList));
 					}
-					
-						activeStudentsEnrolledInCoursesMap.put(
-								enrollmentMap.get("course_id"),
-								enrolledStudentsList);
-					
+
+					activeStudentsEnrolledInCoursesMap.put(
+							enrollmentMap.get("course_id"),
+							enrolledStudentsList);
+
 				}
 
 			}
@@ -138,21 +152,20 @@ public class ActiveCourseList {
 	 * activeStudentsEnrolledInCoursesMap
 	 */
 	private void buildActiveCourseList() {
-		
+
 		for (Entry<String, String> course : activeCoursesMap.entrySet()) {
 			Map<String, List<String>> courseMap = new HashMap<String, List<String>>();
 			List<String> enrolledStudentList = activeStudentsEnrolledInCoursesMap
 					.get(course.getKey());
-			if(enrolledStudentList==null) {
-			  List<String> noStudentsList = new ArrayList<String>();
-			  noStudentsList.add("No students enrolled in course" );
-			  courseMap.put(course.getValue(), noStudentsList);
+			if (enrolledStudentList == null) {
+				List<String> noStudentsList = new ArrayList<String>();
+				noStudentsList.add("No students enrolled in course");
+				courseMap.put(course.getValue(), noStudentsList);
 			} else {
-			courseMap.put(course.getValue(), enrolledStudentList);
+				courseMap.put(course.getValue(), enrolledStudentList);
 			}
-			
+
 			activeCoursesList.add(courseMap);
-			
 
 		}
 	}
@@ -259,6 +272,51 @@ public class ActiveCourseList {
 	 */
 	public static void main(String[] args) {
 		ActiveCourseList app = new ActiveCourseList();
+		parseCommandLineOptions(args, app);
+		app.execute();
+	}
+
+	/**
+	 * parses command line options which will override properties file
+	 * @param args
+	 * @param app
+	 */
+	private static void parseCommandLineOptions(String[] args,
+			ActiveCourseList app) {
+		Options options = new Options();
+		Option debug = new Option("debug", "print debugging information");
+		Option help = new Option("help", "print this message");
+		Option inputFilesDirectory = OptionBuilder.withArgName("inputfilesdirectory")
+				.hasArg().withDescription("use given directory for input files")
+				.create("inputfilesdirectory");
+		options.addOption(inputFilesDirectory);
+		options.addOption(debug);
+		options.addOption(help);
+		CommandLineParser parser = new DefaultParser();
+		try {
+			
+			CommandLine line = parser.parse(options, args);
+			if (line.hasOption("help")){
+				String header = "Print a list of active courses and \nstudents enrolled from a directory  \n containing csv files\n";
+				HelpFormatter formatter = new HelpFormatter();
+				String footer = "\nPlease report issues to mark.neisler@hotmail.com";
+				formatter.printHelp("ActiveCourseList", header, options, footer, true);
+				System.exit(0);
+			}
+			if (line.hasOption("inputfilesdirectory")) {
+				System.out.println(line.getOptionValue( "inputfilesdirectory" ));
+				app.propsMap.put(INPUT_FILES_DIRECTORY, line.getOptionValue( "inputfilesdirectory" ));
+			} else {
+				app.getPropertiesFromClasspath("app.properties.json");
+			}
+			if (line.hasOption("debug")) {
+				app.debug=true;
+			}
+			
+		} catch (ParseException exp) {
+			// oops, something went wrong
+			System.err.println("Parsing failed.  Reason: " + exp.getMessage());
+		}
 	}
 
 	/**
@@ -268,7 +326,7 @@ public class ActiveCourseList {
 	 *            the property file name
 	 * @return the properties if found.
 	 */
-	private synchronized void getPropertiesFromClasspath(String propFileName) {
+	synchronized void getPropertiesFromClasspath(String propFileName) {
 
 		try {
 			InputStream inputStream = this.getClass().getClassLoader()
